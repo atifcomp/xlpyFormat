@@ -1,33 +1,37 @@
 from workbook import FormatWriter
 from worksheet import worksheet
-
-
 sourceFile = "C:/Users/amomin/Desktop/Projects/Charter ISP/Days Aging.xlsx"
-sourceFile2 = "C:/Users/amomin/Desktop/Projects/Charter ISP/Days Aging_2.xlsx"
-
 wb1 = FormatWriter(sourceFile)
-wb2 = FormatWriter(sourceFile2)
+ws1 = worksheet(wb1.book,'abc')
 
-
-
-ws1 = worksheet(wb1.book,'Summary')
-ws1.column_range_width(col_rng = 'A:ZZ',col_width = 3)
-ws1.column_width(col_name='A',col_width = 12)
+# In[]:
 
 
 wb1.save_workbook()
 
 
-from openpyxl.reader.excel import load_workbook
-book = load_workbook(filename = sourceFile)
-ws = book['Summary']
-ws.column_dimensions['A'].width = 200
-book.save(sourceFile)
+# In[]:
+#set all borders
+ws1.set_all_borders('A1:C55')
+
+#Formating Example
+ws1.set_format('A:A','#,##0.00')
+ws1.set_format('B:C','mm-dd-yy')    
+ws1.set_format('D:E','"$"#,##0_);[Red]("$"#,##0)')
+
+#range widht and column width example
+ws1.column_range_width(col_rng = 'A:ZZ',col_width = 3)
+ws1.column_width(col_name='A',col_width = 12)
+
+#column autofit example
+ws1.column_autofit()
+
+#multiple workbooks
+sourceFile2 = "C:/Users/amomin/Desktop/Projects/Charter ISP/Days Aging_2.xlsx"
+wb2 = FormatWriter(sourceFile2)
 
 
-
-
-
+# In[]:
 
 
 

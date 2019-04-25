@@ -19,10 +19,9 @@ class worksheet():
         self.ws = wb[ws_name]
         self.lastRow = self.ws.max_row
         self.lastCol = self.ws.max_column         
-        print(self.lastRow)
-        print(self.lastCol)
-        
-        
+#        print(self.lastRow)
+#        print(self.lastCol)
+    
     def set_all_borders(self,rng=None): 
         """
         This takes sheetname and range as input and apply all borders same as all borders of
@@ -64,7 +63,7 @@ class worksheet():
                         max_length = len(str(cell.value))
                 except:
                     pass            
-            adjusted_width = (max_length + 2)
+            adjusted_width = (max_length + 4)
             self.ws.column_dimensions[column].width = adjusted_width
     
     def column_width(self,col_name,col_width):
@@ -81,7 +80,18 @@ class worksheet():
             return False
         else:
             return True
-
+    
+    def _letter_to_col_number(self,col_rng):
+        """
+        helper function converts the range of column to column number
+        ----------        
+        """
+        firstCol,lastCol = re.split(':',col_rng.strip())
+        _,num1 = xl_cell_to_rowcol(firstCol+'1')
+        _,num2 = xl_cell_to_rowcol(lastCol+'1')
+        return num1,num2
+        
+    
     def column_range_width(self,col_rng,col_width):        
         """
         This takes column range and column widht as input and set the width of columns
@@ -92,11 +102,9 @@ class worksheet():
              width to be set
         """        
         try:
-            firstCol,lastCol = re.split(':',col_rng.strip())
-            print(type(firstCol))
+            firstCol,lastCol = re.split(':',col_rng.strip())            
             if firstCol.isalpha() and lastCol.isalpha() and self._sequence_check(firstCol,lastCol):
-                _,num1 = xl_cell_to_rowcol(firstCol+'1')
-                _,num2 = xl_cell_to_rowcol(lastCol+'1')
+                num1 , num2 = self._letter_to_col_number(col_rng)
                 for _i in range(num1+1,num2+2):
                     self.ws.column_dimensions[get_column_letter(_i)].width = col_width            
             else:
@@ -104,5 +112,27 @@ class worksheet():
         except:
             print("set_all_borders, sheetname or ranges not provided correctly")
 
-
-        
+    def set_format(self,col_rng,formatType):
+        """
+        This takes column range and format type as input and apply format to columns
+        ----------
+        col_rng : string, required
+             eg. 'A:Z'
+        formatType : string, required
+             this is the format type as per openpyxl formats complete list is provided on below path
+             https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/styles/numbers.html             
+        """
+        try:
+            firstCol,lastCol = re.split(':',col_rng.strip())            
+            if firstCol.isalpha() and lastCol.isalpha() and self._sequence_check(firstCol,lastCol):
+                num1,num2 = self._letter_to_col_number(col_rng)
+                print(num1+1)
+                print(num2+1)
+                for _i in range(num1+1,num2+2):
+                    for _j in range(2,self.lastRow+1):
+                        print("_j"+str(_j))            
+                        self.ws[str(get_column_letter(_i)+str(_j))].number_format = formatType
+            else:
+                    raise Exception('column range is not provided correctly')
+        except:
+            print("set_format, colrg not provided correctly or failed some conversion")
