@@ -11,17 +11,42 @@ wb1.save_workbook()
 
 
 # In[]:
+from openpyxl.reader.excel import load_workbook
+from openpyxl.styles.alignment import Alignment
+book = load_workbook(filename = sourceFile)
+ws3 = book['abc']
+
+
+# In[]:
+
+#set font of column
+font_format = { 'name':'Calibri',
+                'size':20,
+                'bold':False,
+                'italic':False,
+                'vertAlign':None,
+                'underline':'none',
+                'strike':False,
+                'color':'FF000000'}
+
+ws1.column_apply_font('A:F', font_format)
+
 #set all borders
 ws1.set_all_borders('A1:C55')
 
 #Formating Example
-ws1.set_format('A:A','#,##0.00')
-ws1.set_format('B:C','mm-dd-yy')    
-ws1.set_format('D:E','"$"#,##0_);[Red]("$"#,##0)')
+ws1.column_set_format('A:A','#,##0.00')
+ws1.column_set_format('B:C','mm-dd-yy')    
+ws1.column_set_format('D:E','"$"#,##0_);[Red]("$"#,##0)')
+
+ws1.set_format('A:Z','"$"#,##0_);[Red]("$"#,##0)')               
 
 #range widht and column width example
-ws1.column_range_width(col_rng = 'A:ZZ',col_width = 3)
+ws1.column_range_width(col_rng = 'A:ZZ',col_width = 30)
 ws1.column_width(col_name='A',col_width = 12)
+
+#center alignment
+ws1.column_center_align('A:D')
 
 #column autofit example
 ws1.column_autofit()

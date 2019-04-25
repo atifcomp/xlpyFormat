@@ -1,7 +1,14 @@
+# openpyxl.__version__ = 2.6.2
 from openpyxl.styles import Border, Side
+from openpyxl.styles import PatternFill, Alignment, Protection, Font
 from openpyxl.utils.cell import get_column_letter
 import re
 from xlsxwriter.utility import xl_cell_to_rowcol
+#from openpyxl.styles.alignment import Alignment
+import __formats
+
+
+
 
 
 class worksheet():
@@ -18,9 +25,43 @@ class worksheet():
     def __init__(self,wb,ws_name):        
         self.ws = wb[ws_name]
         self.lastRow = self.ws.max_row
-        self.lastCol = self.ws.max_column         
+        self.lastCol = self.ws.max_column        
 #        print(self.lastRow)
 #        print(self.lastCol)
+
+    def _sequence_check(self,firstCol,lastCol):
+        """
+        helper function which checks if the ranges provided are in correct order, return True or False
+        ----------        
+        """
+        firstCol = int(firstCol.encode("utf-8").hex(),16)
+        lastCol = int(lastCol.encode("utf-8").hex(),16)
+        if firstCol>lastCol:
+            return False
+        else:
+            return True
+    
+    def _letter_to_col_number(self,col_rng):
+        """
+        helper function converts the range of column to column number
+        ----------        
+        """
+        firstCol,lastCol = re.split(':',col_rng.strip())
+        _,num1 = xl_cell_to_rowcol(firstCol+'1')
+        _,num2 = xl_cell_to_rowcol(lastCol+'1')
+        return num1,num2
+    
+    def _alpha_check(self,col_rng):
+        """
+        helper function checks if the column range provided is alpha and valid column range
+        ----------        
+        """
+        firstCol,lastCol = re.split(':',col_rng.strip())            
+        
+        if firstCol.isalpha() and lastCol.isalpha():
+            return self._sequence_check(firstCol,lastCol)
+        else:
+            raise Exception('column provided not alpha')        
     
     def set_all_borders(self,rng=None): 
         """
@@ -68,30 +109,7 @@ class worksheet():
     
     def column_width(self,col_name,col_width):
         self.ws.column_dimensions[col_name].width = col_width
-    
-    def _sequence_check(self,firstCol,lastCol):
-        """
-        helper function which checks if the ranges provided are in correct order, return True or False
-        ----------        
-        """
-        firstCol = int(firstCol.encode("utf-8").hex(),16)
-        lastCol = int(lastCol.encode("utf-8").hex(),16)
-        if firstCol>lastCol:
-            return False
-        else:
-            return True
-    
-    def _letter_to_col_number(self,col_rng):
-        """
-        helper function converts the range of column to column number
-        ----------        
-        """
-        firstCol,lastCol = re.split(':',col_rng.strip())
-        _,num1 = xl_cell_to_rowcol(firstCol+'1')
-        _,num2 = xl_cell_to_rowcol(lastCol+'1')
-        return num1,num2
-        
-    
+                        
     def column_range_width(self,col_rng,col_width):        
         """
         This takes column range and column widht as input and set the width of columns
@@ -102,8 +120,7 @@ class worksheet():
              width to be set
         """        
         try:
-            firstCol,lastCol = re.split(':',col_rng.strip())            
-            if firstCol.isalpha() and lastCol.isalpha() and self._sequence_check(firstCol,lastCol):
+            if self._alpha_check(col_rng):
                 num1 , num2 = self._letter_to_col_number(col_rng)
                 for _i in range(num1+1,num2+2):
                     self.ws.column_dimensions[get_column_letter(_i)].width = col_width            
@@ -112,7 +129,7 @@ class worksheet():
         except:
             print("set_all_borders, sheetname or ranges not provided correctly")
 
-    def set_format(self,col_rng,formatType):
+    def column_set_format(self,col_rng,formatType):
         """
         This takes column range and format type as input and apply format to columns
         ----------
@@ -123,16 +140,53 @@ class worksheet():
              https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/styles/numbers.html             
         """
         try:
-            firstCol,lastCol = re.split(':',col_rng.strip())            
-            if firstCol.isalpha() and lastCol.isalpha() and self._sequence_check(firstCol,lastCol):
-                num1,num2 = self._letter_to_col_number(col_rng)
-                print(num1+1)
-                print(num2+1)
-                for _i in range(num1+1,num2+2):
-                    for _j in range(2,self.lastRow+1):
-                        print("_j"+str(_j))            
-                        self.ws[str(get_column_letter(_i)+str(_j))].number_format = formatType
-            else:
-                    raise Exception('column range is not provided correctly')
+            self._general_formating(col_rng,_formatType=formatType)
         except:
             print("set_format, colrg not provided correctly or failed some conversion")
+    
+    def column_center_align(self,col_rng):
+        try:
+            self._general_formating(col_rng,_column_center_align=True)
+        except:
+            print("column_center_align, colrg not provided correctly or failed some conversion")
+    
+    def column_apply_font(self,col_rng,font_format):
+        _font_format = { 'name':None,
+                'size':None,
+                'bold':None,
+                'italic':None,
+                'vertAlign':None,
+                'underline':None,
+                'strike':None,
+                'color':None}
+        _font_format.update(font_format)
+        print(_font_format)
+        font = Font(name=_font_format['name'],
+                size=_font_format['size'],
+                bold=_font_format['bold'],
+                italic=_font_format['italic'],
+                vertAlign=_font_format['vertAlign'],
+                underline=_font_format['underline'],
+                strike=_font_format['strike'],
+                color=_font_format['color'] )
+        print(font)
+        self._general_formating(col_rng,_font=font)
+        
+    
+    def _general_formating(self,col_rng,**kwargs):         
+        if self._alpha_check(col_rng):
+            num1,num2 = self._letter_to_col_number(col_rng)            
+            for _i in range(num1+1,num2+2):
+                for _j in range(2,self.lastRow+1):
+                    if '_formatType' in kwargs:
+                        self.ws[str(get_column_letter(_i)+str(_j))].number_format = kwargs['_formatType']
+                    elif '_column_center_align' in kwargs:
+                        self.ws.cell(row=_i,column=_j).alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                    elif '_font' in kwargs:                        
+                        self.ws[str(get_column_letter(_i)+str(_j))].font = kwargs['_font']                        
+        else:
+                raise Exception('column range is not provided correctly')
+            
+            
+    
+        
