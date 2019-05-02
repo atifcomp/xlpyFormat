@@ -1,33 +1,33 @@
 # openpyxl.__version__ = 2.6.2
+# Created By: Atif Momin
 from openpyxl.styles import Border, Side
-from openpyxl.styles import PatternFill, Alignment, Protection, Font
+from openpyxl.styles import Alignment, Font
 from openpyxl.utils.cell import get_column_letter
 import re
 from xlsxwriter.utility import xl_cell_to_rowcol
+from copy import copy
 #from openpyxl.styles.alignment import Alignment
 import __formats
 
 
 
-
-
-class worksheet():
+class Worksheet():
     """
     This is the class as worksheet level
-    Parameters
-    ----------
-    wb : workbook object, required
-        this is the object of work book class of xlpyformatter
+    
+    Parameters:    
+    wb:     workbook object, required
+            this is the object of work book class of xlpyformatter
     ws_name: string, required
         this is the worksheet name parameter                
     """
     
-    def __init__(self,wb,ws_name):        
+    def __init__(self,wb,ws_name):
+        self.wb = wb
         self.ws = wb[ws_name]
         self.lastRow = self.ws.max_row
         self.lastCol = self.ws.max_column        
-#        print(self.lastRow)
-#        print(self.lastCol)
+
 
     def _sequence_check(self,firstCol,lastCol):
         """
@@ -63,7 +63,9 @@ class worksheet():
         else:
             raise Exception('column provided not alpha')        
     
-    def set_all_borders(self,rng=None): 
+        
+    
+    def set_all_borders(self,rng=None,border_type=None): 
         """
         This takes sheetname and range as input and apply all borders same as all borders of
         excel
@@ -71,29 +73,49 @@ class worksheet():
         rng : string, required
              range of the excel where border has to be applied
         """        
-        try:
-            startCell,endCell = re.split(':',rng.strip())
-            minRow,minCol = xl_cell_to_rowcol(startCell)
-            maxRow,maxCol = xl_cell_to_rowcol(endCell)
-            
-            border = Border(left=Side(border_style='thin', color='000000'),
-                right=Side(border_style='thin', color='000000'),
-                top=Side(border_style='thin', color='000000'),
-                bottom=Side(border_style='thin', color='000000'))
+        self._general_formating_range(rng,_set_all_borders=True,_border_type=border_type)
+#        try:
+#            startCell,endCell = re.split(':',rng.strip())
+#            minRow,minCol = xl_cell_to_rowcol(startCell)
+#            maxRow,maxCol = xl_cell_to_rowcol(endCell)
+#            
+#            border = Border(left=Side(border_style='thin', color='000000'),
+#                right=Side(border_style='thin', color='000000'),
+#                top=Side(border_style='thin', color='000000'),
+#                bottom=Side(border_style='thin', color='000000'))
+#
+#            rows = self.ws.iter_rows(min_row=minRow+1,max_row=maxRow+1,min_col=minCol+1,max_col=maxCol+1)
+#            for row in rows:
+#                for cell in row:                    
+#                    cell.border = border
+#        except:
+#            print("set_all_borders, sheetname or ranges not provided correctly")
 
-            rows = self.ws.iter_rows(min_row=minRow+1,max_row=maxRow+1,min_col=minCol+1,max_col=maxCol+1)
-            for row in rows:
-                for cell in row:                    
+    def _general_formating_range(self,rng,**kwargs):
+        startCell,endCell = re.split(':',rng.strip())
+        minRow,minCol = xl_cell_to_rowcol(startCell)
+        maxRow,maxCol = xl_cell_to_rowcol(endCell)
+        
+        rows = self.ws.iter_rows(min_row=minRow+1,max_row=maxRow+1,min_col=minCol+1,max_col=maxCol+1)
+        for row in rows:
+            for cell in row:                    
+                if '_set_all_borders' in kwargs:
+                    border = Border(left=Side(border_style=kwargs['_border_type'], color='373636'),
+                            right=Side(border_style=kwargs['_border_type'], color='373636'),
+                            top=Side(border_style=kwargs['_border_type'], color='373636'),
+                            bottom=Side(border_style=kwargs['_border_type'], color='373636'))                    
                     cell.border = border
-        except:
-            print("set_all_borders, sheetname or ranges not provided correctly")
+                else:
+                    pass
+
 
     def column_autofit(self):
         """
         This takes auto fits the columns of the sheet
         ----------        
         """
-        for col in self.ws.columns:
+        print(self.ws.columns)
+        for col in self.ws.columns:        
             max_length = 0
             column = col[0].column_letter # Get the column name
             for cell in col:
@@ -140,13 +162,13 @@ class worksheet():
              https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/styles/numbers.html             
         """
         try:
-            self._general_formating(col_rng,_formatType=formatType)
+            self._general_formating_col(col_rng,_formatType=formatType)
         except:
             print("set_format, colrg not provided correctly or failed some conversion")
     
     def column_center_align(self,col_rng):
         try:
-            self._general_formating(col_rng,_column_center_align=True)
+            self._general_formating_col(col_rng,_column_center_align=True)
         except:
             print("column_center_align, colrg not provided correctly or failed some conversion")
     
@@ -170,10 +192,10 @@ class worksheet():
                 strike=_font_format['strike'],
                 color=_font_format['color'] )
         print(font)
-        self._general_formating(col_rng,_font=font)
+        self._general_formating_col(col_rng,_font=font)
         
     
-    def _general_formating(self,col_rng,**kwargs):         
+    def _general_formating_col(self,col_rng,**kwargs):         
         if self._alpha_check(col_rng):
             num1,num2 = self._letter_to_col_number(col_rng)            
             for _i in range(num1+1,num2+2):
@@ -181,7 +203,7 @@ class worksheet():
                     if '_formatType' in kwargs:
                         self.ws[str(get_column_letter(_i)+str(_j))].number_format = kwargs['_formatType']
                     elif '_column_center_align' in kwargs:
-                        self.ws.cell(row=_i,column=_j).alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                        self.ws[str(get_column_letter(_i)+str(_j))].alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
                     elif '_font' in kwargs:                        
                         self.ws[str(get_column_letter(_i)+str(_j))].font = kwargs['_font']                        
         else:
@@ -189,4 +211,58 @@ class worksheet():
             
             
     
+class Copyformat(Worksheet):
+    """
+    This class is for copying the formats of one worksheet to other, it inherites 
+    the properties of worksheet class as we have to use few functionalities of worksheet 
+    class such as column autofit.
+    
+    Parameters:    
+    wb:     workbook object, required
+            this is the object of work book class of xlpyformatter, this is initialize 
+            from worksheet class
+    ws_name: string, required
+            this is the worksheet name parameter, this is initialize 
+            from worksheet class
+    wb_template: workbook object, required
+            work book object of template excel
+    ws_template_name: string, required
+            worksheet nanme of the template 
+            
+    """
+    def __init__(self,wb,ws_name,wb_template,ws_template_name):
+        super().__init__(wb,ws_name)
+        self.wb_template = wb_template
+        self.ws_template = self.wb_template[ws_template_name]
+    
+    def copy_style(self,src_cell, dest_cell):
+        dest_cell.font = copy(src_cell.font)
+        dest_cell.fill = copy(src_cell.fill)
+        dest_cell.border = copy(src_cell.border)
+        dest_cell.alignment = copy(src_cell.alignment)
+        dest_cell.number_format = copy(src_cell.number_format)    
+    
+    
+    def replicate_format(self):                
+        # this code copies the formats of template sheet and apply it over to 
+        # destinations sheet
+        for row in self.ws_template.rows:
+            for cell in row:
+                new_cell = self.ws.cell(row=cell.row,
+                           column=cell.column)
+                if cell.has_style:
+                    self.copy_style(cell, new_cell)
+        
+        #auto-fitting the column as it doesn't fit automatically by copying styles        
+        #this function has been inherited from Worksheet (parent) class
+        self.column_autofit()
+        
+        #if sheet has merged cells, it doesn't copy it by default
+        #we need to merge it afterwards
+        print(self.ws_template.merged_cells)
+        if self.ws_template.merged_cells:
+            for rng in self.ws_template.merged_cells:
+                self.ws.merge_cells(str(rng))
+    
+            
         
