@@ -53,6 +53,8 @@ for row in default_sheet.rows:
             
 
 x = default_sheet.merged_cells
-x        
+print(dir(x))
+
+x
 
 book2.save(filename=srcfile2)
