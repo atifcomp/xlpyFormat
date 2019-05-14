@@ -1,7 +1,7 @@
 from workbook import FormatWriter
 from worksheet import Worksheet,Copyformat
-sourceFile = "C:/Users/amomin/Documents/GitHub/xlpyFormat/data_Matt.xlsx"
-sourceFile2 = "C:/Users/amomin/Documents/GitHub/xlpyFormat/template_2.xlsx"
+sourceFile = "C:/Users/amomin/Documents/GitHub/xlpyFormat/data_demo.xlsx"
+sourceFile2 = "C:/Users/amomin/Documents/GitHub/xlpyFormat/template.xlsx"
 
 
 wb1 = FormatWriter(sourceFile)
@@ -10,15 +10,15 @@ wb1 = FormatWriter(sourceFile)
 
 fmt_wb1 = FormatWriter(sourceFile2)
 
-fmt_sheet1 = Copyformat(wb1.book,'Overview',fmt_wb1.book,'Overview')
-fmt_sheet2 = Copyformat(wb1.book,'DEMO Summary',fmt_wb1.book,'DEMO Summary')
-fmt_sheet3 = Copyformat(wb1.book,'GOAL Summary',fmt_wb1.book,'GOAL Summary')
-fmt_sheet4 = Copyformat(wb1.book,'BUDGET Summary',fmt_wb1.book,'BUDGET Summary')
+fmt_sheet1 = Copyformat(wb1.book,'data_sheet',fmt_wb1.book,'template_sheet')
+#fmt_sheet2 = Copyformat(wb1.book,'DEMO Summary',fmt_wb1.book,'DEMO Summary')
+#fmt_sheet3 = Copyformat(wb1.book,'GOAL Summary',fmt_wb1.book,'GOAL Summary')
+#fmt_sheet4 = Copyformat(wb1.book,'BUDGET Summary',fmt_wb1.book,'BUDGET Summary')
 
 fmt_sheet1.replicate_format()
-fmt_sheet2.replicate_format()
-fmt_sheet3.replicate_format()
-fmt_sheet4.replicate_format()
+#fmt_sheet2.replicate_format()
+#fmt_sheet3.replicate_format()
+#fmt_sheet4.replicate_format()
 
 #ws1.column_width(col_name='E',col_width = 12)
 #ws1.set_all_borders('H3:H8','thick')
