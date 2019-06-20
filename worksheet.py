@@ -265,4 +265,79 @@ class Copyformat(Worksheet):
                 self.ws.merge_cells(str(rng))
     
             
+
+class DynamicCopyformat(Worksheet):
+    """
+    This class is for copying the formats of one worksheet to other, there can be some 
+    static rows and dynamic rows to be copied, it inherites 
+    the properties of worksheet class as we have to use few functionalities of worksheet 
+    class such as column autofit etc.
+    
+    Parameters:    
+    wb:     workbook object, required
+            this is the object of work book class of xlpyformatter, this is initialize 
+            from worksheet class
+    ws_name: string, required
+            this is the worksheet name parameter, this is initialize 
+            from worksheet class
+    wb_template: workbook object, required
+            work book object of template excel
+    ws_template_name: string, required
+            worksheet nanme of the template     
+    static_rows: list, required
+        list of row numbers of static rows in the template
+    var_row: integer, required
+        row number of the variable rows in formating template
+        
+            
+    """
+    def __init__(self,wb,ws_name,wb_template,ws_template_name,static_rows,var_row):
+        super().__init__(wb,ws_name)
+        self.wb_template = wb_template
+        self.ws_template = self.wb_template[ws_template_name]
+        
+        self.wb = wb
+        self.ws_name = self.wb[ws_name]
+        self.static_rows = static_rows
+        self.var_row = var_row
+    
+    def copy_style(self,src_cell, dest_cell):
+        dest_cell.font = copy(src_cell.font)
+        dest_cell.fill = copy(src_cell.fill)
+        dest_cell.border = copy(src_cell.border)
+        dest_cell.alignment = copy(src_cell.alignment)
+        dest_cell.number_format = copy(src_cell.number_format)    
+    
+    
+    def replicate_format(self):                
+        # this code copies the formats of template sheet and apply it over to 
+        # destinations sheet
+        row_count = self.ws_name.max_row
+        for row_num in range(1,row_count+1):  
+            for cell in self.ws_name[row_num]:
+                if cell.row in self.static_rows:
+                    new_cell = self.ws.cell(row=cell.row,
+                               column=cell.column)
+                    template_cell = self.ws_template.cell(cell.row,cell.column)                    
+                    
+                    if template_cell.has_style:
+                        self.copy_style(template_cell, new_cell)
+                else:
+                   new_cell = self.ws.cell(row=cell.row,
+                               column=cell.column)
+                   template_cell = self.ws_template.cell(self.var_row,cell.column)                    
+                    
+                   if template_cell.has_style:
+                        self.copy_style(template_cell, new_cell)
+        #auto-fitting the column as it doesn't fit automatically by copying styles        
+        #this function has been inherited from Worksheet (parent) class
+        self.column_autofit()
+        
+        #if sheet has merged cells, it doesn't copy it by default
+        #we need to merge it afterwards
+        print(self.ws_template.merged_cells)
+        if self.ws_template.merged_cells:
+            for rng in self.ws_template.merged_cells:
+                self.ws.merge_cells(str(rng))
+    
         
